@@ -1,10 +1,6 @@
-provider "kind" {
-  # Configuration options
-}
+provider "kind" {}
 
-provider "local" {
-  # Configuration options
-}
+provider "local" {}
 
 provider "helm" {
   kubernetes = {
@@ -15,8 +11,6 @@ provider "helm" {
 provider "kubectl" {
   config_path = local_file.kubeconfig.filename
 }
-
-
 
 resource "kind_cluster" "default" {
   name       = var.clustername
@@ -56,11 +50,7 @@ resource "kind_cluster" "default" {
       role = "worker"
     }
   }
-
-
-
 }
-
 
 resource "kubectl_manifest" "kubevip" {
   depends_on = [kind_cluster.default, local_file.kubeconfig]
@@ -166,10 +156,6 @@ spec:
             type: Directory
 YAML
 }
-
-
-
-
 
 resource "kubectl_manifest" "prometheus-namespace" {
   depends_on = [kind_cluster.default, local_file.kubeconfig]

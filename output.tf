@@ -2,7 +2,6 @@ output "cluster_name" {
   value = kind_cluster.default.name
 }
 
-
 output "endpoint" {
   value = kind_cluster.default.endpoint
 }
