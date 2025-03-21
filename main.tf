@@ -187,23 +187,7 @@ resource "helm_release" "cilium" {
 resource "kubectl_manifest" "l2announcements" {
   depends_on = [kind_cluster.default, local_file.kubeconfig, helm_release.cilium, helm_release.metrics]
   server_side_apply = true
-  yaml_body = <<YAML
----
-apiVersion: "cilium.io/v2alpha1"
-kind: CiliumL2AnnouncementPolicy
-metadata:
-  name: default
-spec:
-  nodeSelector:
-    matchExpressions:
-      - key: node-role.kubernetes.io/control-plane
-        operator: DoesNotExist
-  interfaces:
-  - ^eth[0-9]+
-  externalIPs: true
-  loadBalancerIPs: true
----
-YAML
+  yaml_body = file("./kubernetes_manifest/cilium-l2announcementpolicy.yaml")
 }
 
 resource "kubectl_manifest" "ippools" {
