@@ -193,18 +193,7 @@ resource "kubectl_manifest" "l2announcements" {
 resource "kubectl_manifest" "ippools" {
   depends_on = [kind_cluster.default, local_file.kubeconfig, helm_release.cilium, helm_release.metrics]
   server_side_apply = true
-  yaml_body = <<YAML
----
-apiVersion: "cilium.io/v2alpha1"
-kind: CiliumLoadBalancerIPPool
-metadata:
-  name: "kind-docker-pool"
-spec:
-  blocks:
-  - start: "172.18.99.99"
-    stop: "172.18.99.110"
----
-YAML
+  yaml_body = file("./kubernetes_manifest/cilium-loadbalancerippool.yaml")
 }
 
 
