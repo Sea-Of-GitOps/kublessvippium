@@ -115,11 +115,11 @@ resource "helm_release" "cilium" {
       value = "6443"
     },
     {
-      name  = "l2announcements.enable"
+      name  = "l2announcements.enabled"
       value = "true"
     },
     {
-      name  = "socketLB.enable"
+      name  = "socketLB.enabled"
       value = "true"
     },
     {
@@ -128,6 +128,10 @@ resource "helm_release" "cilium" {
     },
     {
       name  = "operator.prometheus.enabled"
+      value = "true"
+    },
+    {
+      name  = "prometheus.enabled"
       value = "true"
     },
     {
