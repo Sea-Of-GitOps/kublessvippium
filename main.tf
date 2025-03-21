@@ -1,8 +1,8 @@
-provider kind {
+provider "kind" {
   # Configuration options
 }
 
-provider local {
+provider "local" {
   # Configuration options
 }
 
@@ -19,18 +19,18 @@ provider "kubectl" {
 
 
 resource "kind_cluster" "default" {
-    name = var.clustername
-    node_image = "kindest/node:v1.27.1"
-    kind_config  {
-        kind = "Cluster"
-        api_version = "kind.x-k8s.io/v1alpha4"
-        networking {
-          disable_default_cni = true
-          kube_proxy_mode = "none"
-        }
-        node {
-            role = "control-plane"
-            kubeadm_config_patches = [<<-EOT
+  name       = var.clustername
+  node_image = "kindest/node:v1.27.1"
+  kind_config {
+    kind        = "Cluster"
+    api_version = "kind.x-k8s.io/v1alpha4"
+    networking {
+      disable_default_cni = true
+      kube_proxy_mode     = "none"
+    }
+    node {
+      role = "control-plane"
+      kubeadm_config_patches = [<<-EOT
             kind: ClusterConfiguration
             apiServer:
                 certSANs:
@@ -39,23 +39,23 @@ resource "kind_cluster" "default" {
                 - host.docker.internal
                 - 172.18.99.254
             EOT
-            ]
-            extra_port_mappings {
-                container_port = 80
-                host_port      = 80
-            }
-            extra_port_mappings {
-                container_port = 443
-                host_port      = 443
-            }
-        }
-        node {
-            role =  "worker"
-        }
-        node {
-            role =  "worker"
-        }
-    }    
+      ]
+      extra_port_mappings {
+        container_port = 80
+        host_port      = 80
+      }
+      extra_port_mappings {
+        container_port = 443
+        host_port      = 443
+      }
+    }
+    node {
+      role = "worker"
+    }
+    node {
+      role = "worker"
+    }
+  }
 
 
 
@@ -64,7 +64,7 @@ resource "kind_cluster" "default" {
 
 resource "kubectl_manifest" "kubevip" {
   depends_on = [kind_cluster.default, local_file.kubeconfig]
-  yaml_body = <<YAML
+  yaml_body  = <<YAML
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -173,30 +173,30 @@ YAML
 
 resource "kubectl_manifest" "prometheus-namespace" {
   depends_on = [kind_cluster.default, local_file.kubeconfig]
-  yaml_body = file("./kubernetes_manifest/prometheus-namespace.yaml")
+  yaml_body  = file("./kubernetes_manifest/prometheus-namespace.yaml")
 }
 
 data "kubectl_file_documents" "prometheus-crds-content" {
-    content = file("./kubernetes_manifest/prometheus-crds.yaml")
+  content = file("./kubernetes_manifest/prometheus-crds.yaml")
 }
 
 resource "kubectl_manifest" "prometheus-crds" {
-    depends_on = [kind_cluster.default, local_file.kubeconfig, kubectl_manifest.prometheus-namespace, data.kubectl_file_documents.prometheus-crds-content]
-    server_side_apply = true
-    for_each  = data.kubectl_file_documents.prometheus-crds-content.manifests
-    yaml_body = each.value
+  depends_on        = [kind_cluster.default, local_file.kubeconfig, kubectl_manifest.prometheus-namespace, data.kubectl_file_documents.prometheus-crds-content]
+  server_side_apply = true
+  for_each          = data.kubectl_file_documents.prometheus-crds-content.manifests
+  yaml_body         = each.value
 }
 
 
 
 resource "helm_release" "cilium" {
-  wait = false
-  name = "cilium"
-  repository = "https://helm.cilium.io/"
-  namespace = "kube-system"
+  wait             = false
+  name             = "cilium"
+  repository       = "https://helm.cilium.io/"
+  namespace        = "kube-system"
   create_namespace = true
-  chart      = "cilium"
-  depends_on = [kind_cluster.default, local_file.kubeconfig, kubectl_manifest.prometheus-crds ]
+  chart            = "cilium"
+  depends_on       = [kind_cluster.default, local_file.kubeconfig, kubectl_manifest.prometheus-crds]
   set = [
     {
       name  = "operator.replicas"
@@ -258,7 +258,7 @@ resource "helm_release" "cilium" {
       name  = "hubble.metrics.dashboards.annotations.grafana_folder"
       value = "Hubble"
     }
-,
+    ,
     {
       name  = "hubble.metrics.enableOpenMetrics"
       value = "true"
@@ -285,9 +285,9 @@ resource "helm_release" "cilium" {
 
 
 resource "kubectl_manifest" "l2announcements" {
-  depends_on = [kind_cluster.default, local_file.kubeconfig, helm_release.cilium, helm_release.metrics]
+  depends_on        = [kind_cluster.default, local_file.kubeconfig, helm_release.cilium, helm_release.metrics]
   server_side_apply = true
-  yaml_body = <<YAML
+  yaml_body         = <<YAML
 ---
 apiVersion: "cilium.io/v2alpha1"
 kind: CiliumL2AnnouncementPolicy
@@ -307,9 +307,9 @@ YAML
 }
 
 resource "kubectl_manifest" "ippools" {
-  depends_on = [kind_cluster.default, local_file.kubeconfig, helm_release.cilium, helm_release.metrics]
+  depends_on        = [kind_cluster.default, local_file.kubeconfig, helm_release.cilium, helm_release.metrics]
   server_side_apply = true
-  yaml_body = <<YAML
+  yaml_body         = <<YAML
 ---
 apiVersion: "cilium.io/v2alpha1"
 kind: CiliumLoadBalancerIPPool
@@ -325,14 +325,14 @@ YAML
 
 
 resource "helm_release" "metrics" {
-  name       = "metrics-server"
-  repository = "https://kubernetes-sigs.github.io/metrics-server/"
-  chart      = "metrics-server"
-  create_namespace = true
+  name              = "metrics-server"
+  repository        = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart             = "metrics-server"
+  create_namespace  = true
   dependency_update = true
-  namespace = "metrics"
-  version = "3.12.2"
-  depends_on = [kind_cluster.default, local_file.kubeconfig, helm_release.cilium]
+  namespace         = "metrics"
+  version           = "3.12.2"
+  depends_on        = [kind_cluster.default, local_file.kubeconfig, helm_release.cilium]
   values = [<<YAML
   defaultArgs:
   - --cert-dir=/tmp
