@@ -61,17 +61,6 @@ resource "kind_cluster" "default" {
 
 }
 
-# resource "helm_release" "calico" {
-#   name       = "calico"
-#   repository = "https://docs.tigera.io/calico/charts"
-#   chart      = "tigera-operator"
-#   create_namespace = true
-#   dependency_update = true
-#   namespace = "tigera-operator"
-#   version = "v3.29.2"
-#   depends_on = [kind_cluster.default, local_file.kubeconfig]
-#   cleanup_on_fail = true
-# }
 
 resource "kubectl_manifest" "kubevip" {
   depends_on = [kind_cluster.default, local_file.kubeconfig]
@@ -184,11 +173,11 @@ YAML
 
 resource "kubectl_manifest" "prometheus-namespace" {
   depends_on = [kind_cluster.default, local_file.kubeconfig]
-  yaml_body = file("./prometheus-namespace.yaml")
+  yaml_body = file("./kubernetes_manifest/prometheus-namespace.yaml")
 }
 
 data "kubectl_file_documents" "prometheus-crds-content" {
-    content = file("prometheus-crds.yaml")
+    content = file("./kubernetes_manifest/prometheus-crds.yaml")
 }
 
 resource "kubectl_manifest" "prometheus-crds" {
