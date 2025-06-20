@@ -4,5 +4,5 @@ metadata:
   name: "kind-docker-pool"
 spec:
   blocks:
-  - start: "172.18.99.99"
-    stop: "172.18.99.110"
+    - start: "172.18.99.99"
+      stop: "172.18.99.110"
