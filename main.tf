@@ -16,8 +16,6 @@ provider "kubectl" {
   config_path = local_file.kubeconfig.filename
 }
 
-
-
 resource "kind_cluster" "default" {
   name       = var.cluster_name
   node_image = var.node_image
@@ -56,20 +54,12 @@ resource "kind_cluster" "default" {
       role = "worker"
     }
   }
-
-
-
 }
-
 
 resource "kubectl_manifest" "kubevip" {
   depends_on = [kind_cluster.default, local_file.kubeconfig]
   yaml_body  = file("./kubernetes_manifest/kubevip-job.yaml")
 }
-
-
-
-
 
 resource "kubectl_manifest" "prometheus-namespace" {
   depends_on = [kind_cluster.default, local_file.kubeconfig]
@@ -86,8 +76,6 @@ resource "kubectl_manifest" "prometheus-crds" {
   for_each          = data.kubectl_file_documents.prometheus-crds-content.manifests
   yaml_body         = each.value
 }
-
-
 
 resource "helm_release" "cilium" {
   wait             = false
@@ -108,7 +96,7 @@ resource "helm_release" "cilium" {
     },
     {
       name  = "k8sServiceHost"
-      value = "172.18.99.254"
+      value = "${var.k8s_service_host}"
     },
     {
       name  = "k8sServicePort"
@@ -184,9 +172,7 @@ resource "helm_release" "cilium" {
       value = "shared"
     }
   ]
-
 }
-
 
 resource "kubectl_manifest" "l2announcements" {
   depends_on        = [kind_cluster.default, local_file.kubeconfig, helm_release.cilium, helm_release.metrics]
@@ -199,7 +185,6 @@ resource "kubectl_manifest" "ippools" {
   server_side_apply = true
   yaml_body         = file("./kubernetes_manifest/cilium-loadbalancerippool.yaml")
 }
-
 
 resource "helm_release" "metrics" {
   name              = "metrics-server"
@@ -220,5 +205,4 @@ resource "helm_release" "metrics" {
   YAML
   ]
   cleanup_on_fail = true
-
 }
