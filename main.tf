@@ -19,8 +19,8 @@ provider "kubectl" {
 
 
 resource "kind_cluster" "default" {
-  name       = var.clustername
-  node_image = "kindest/node:v1.27.1"
+  name       = var.cluster_name
+  node_image = var.node_image
   kind_config {
     kind        = "Cluster"
     api_version = "kind.x-k8s.io/v1alpha4"
@@ -37,7 +37,7 @@ resource "kind_cluster" "default" {
                 - localhost
                 - 127.0.0.1
                 - host.docker.internal
-                - 172.18.99.254
+                - ${var.k8s_service_host}
             EOT
       ]
       extra_port_mappings {
