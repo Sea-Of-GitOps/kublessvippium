@@ -20,7 +20,7 @@ provider "kubectl" {
 
 resource "kind_cluster" "default" {
     name = var.clustername
-    node_image = "kindest/node:v1.27.1"
+    node_image = "kindest/node:v1.30.0"
     kind_config  {
         kind = "Cluster"
         api_version = "kind.x-k8s.io/v1alpha4"
@@ -208,7 +208,7 @@ resource "helm_release" "metrics" {
   create_namespace = true
   dependency_update = true
   namespace = "metrics"
-  version = "3.12.2"
+  version = "3.13.1"
   depends_on = [kind_cluster.default, local_file.kubeconfig, helm_release.cilium]
   values = [<<YAML
   defaultArgs:
